@@ -1,18 +1,58 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import axios from 'axios';
 
 class App extends Component {
+  state = {
+    user: null,
+    message: null,
+  }
+
+  componentDidMount() {
+    axios.get('/api/user-data').then(response => {
+      this.setState({
+        user: response.data.user,
+      });
+    }).catch(error => {
+      this.setState({
+        message: error.message,
+      });
+    });
+  }
+
+  logout = () => {
+    axios.post('/api/logout').then(response => {
+      this.setState({
+        user: response.data.user,
+      });
+    }).catch(error => {
+      this.setState({
+        message: error.message,
+      });
+    });
+  }
+
   render() {
+    const { user, message } = this.state;
+
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+      <div className="app">
+        {user ?
+          <div>
+            You are logged in. Your info is:
+            <div>
+              <pre>
+                {JSON.stringify(user, null, 2)}
+              </pre>
+            </div>
+            <div><button onClick={this.logout}>Log out</button></div>
+          </div>
+        :
+          <div>
+            <div>Please <a href={`https://${process.env.REACT_APP_AUTH0_DOMAIN}/login?client=${process.env.REACT_APP_AUTH0_CLIENT_ID}&scope=openid%20profile%20email`}>login</a></div>
+          </div>
+        }
+        <div className="message">{message}</div>
       </div>
     );
   }
